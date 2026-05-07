@@ -80,7 +80,7 @@
   for (let i = 0; i < 7; i++) {
     const o = document.createElement('div'); o.className = 'orb';
     const s = Math.random() * 110 + 40;
-    o.style.cssText = `width:${s}px;height:${s}px;left:${Math.random()*88}%;animation-duration:${Math.random()*18+22}s;animation-delay:${-Math.random()*32}s;`;
+    o.style.cssText = `width:${s}px;height:${s}px;left:${Math.random() * 88}%;animation-duration:${Math.random() * 18 + 22}s;animation-delay:${-Math.random() * 32}s;`;
     el.appendChild(o);
   }
 })();
@@ -93,7 +93,7 @@
   function flash() {
     const f = document.createElement('div'); f.className = 'flash';
     f.style.left = Math.random() * innerWidth + 'px';
-    f.style.top  = Math.random() * innerHeight + 'px';
+    f.style.top = Math.random() * innerHeight + 'px';
     el.appendChild(f);
     requestAnimationFrame(() => f.classList.add('go'));
     setTimeout(() => f.remove(), 500);
@@ -116,40 +116,132 @@ document.addEventListener('click', e => {
    ═══════════════════════════════════════ */
 function typeEl(el, speed) {
   speed = speed || 20;
+  if (el.dataset.typing) return el._typingPromise || Promise.resolve();
   if (el.dataset.done) return Promise.resolve();
-  const raw = el.dataset.raw || el.innerHTML;
-  if (!el.dataset.raw) el.dataset.raw = raw;
-  el.innerHTML = ''; el.classList.add('typing'); el.style.opacity = '1';
+  const raw = el._typewriterHTML || el.innerHTML;
+  el._typewriterHTML = raw;
+  const token = { skip: false };
+  el._typeToken = token;
+  const template = document.createElement('template');
+  template.innerHTML = raw;
+  el.innerHTML = '';
+  el.classList.add('typing');
+  el.style.opacity = '1';
+  updateReaderControl();
 
-  return new Promise(res => {
-    let i = 0;
-    function tick() {
-      if (i >= raw.length) {
-        el.classList.remove('typing'); el.dataset.done = '1'; res(); return;
+  const wait = delay => new Promise(res => setTimeout(res, delay));
+  const finish = () => {
+    el.innerHTML = raw;
+    el.classList.remove('typing');
+    el.dataset.done = '1';
+    delete el.dataset.typing;
+    updateReaderControl();
+  };
+
+  async function revealNode(source, targetParent) {
+    if (token.skip) return finish();
+
+    if (source.nodeType === Node.TEXT_NODE) {
+      const target = document.createTextNode('');
+      targetParent.appendChild(target);
+      for (const char of Array.from(source.textContent || '')) {
+        if (token.skip) return finish();
+        target.textContent += char;
+        await wait(speed);
       }
-      /* skip html tags in one shot */
-      if (raw[i] === '<') {
-        const end = raw.indexOf('>', i);
-        if (end !== -1) { el.innerHTML += raw.slice(i, end + 1); i = end + 1; setTimeout(tick, 0); return; }
-      }
-      el.innerHTML += raw[i++]; setTimeout(tick, speed);
+      return;
     }
-    tick();
-  });
+
+    if (source.nodeType !== Node.ELEMENT_NODE) return;
+
+    const target = source.cloneNode(false);
+    targetParent.appendChild(target);
+    for (const child of source.childNodes) {
+      await revealNode(child, target);
+      if (token.skip) return;
+    }
+  }
+
+  el.dataset.typing = '1';
+  el._typingPromise = (async () => {
+    for (const child of template.content.childNodes) {
+      await revealNode(child, el);
+      if (token.skip) return;
+    }
+    finish();
+  })();
+
+  return el._typingPromise;
 }
 
 /* ═══════════════════════════════════════
    SCENES
    ═══════════════════════════════════════ */
-const scenes  = [...document.querySelectorAll('.scene')];
-const dots    = [...document.querySelectorAll('.dot')];
+const scenes = [...document.querySelectorAll('.scene')];
+const dots = [...document.querySelectorAll('.dot')];
 const prevBtn = document.getElementById('prev');
 const nextBtn = document.getElementById('next');
+const readerControls = document.getElementById('reader-controls');
+const readerToggle = document.getElementById('reader-toggle');
+const progress = document.getElementById('progress');
 let cur = 0, busy = false;
+
+function updateProgress() {
+  if (progress) progress.textContent = `${cur + 1} / ${scenes.length}`;
+}
+
+function sceneHasTyping(sc) {
+  return !!sc && !!sc.querySelector('.tw.typing');
+}
+
+function sceneHasTypedText(sc) {
+  return !!sc && !!sc.querySelector('.tw[data-done="1"]');
+}
+
+function updateReaderControl() {
+  const sc = scenes[cur];
+  if (!readerControls || !readerToggle || !sc) return;
+  const hasText = !!sc.querySelector('.tw');
+  readerControls.classList.toggle('show', hasText);
+  readerToggle.textContent = sceneHasTyping(sc) ? 'Show full message' : 'Replay message';
+}
+
+function showFullMessage(sc) {
+  if (!sc) return;
+  sc.querySelectorAll('.tw').forEach(el => {
+    const raw = el._typewriterHTML || el.innerHTML;
+    el._typewriterHTML = raw;
+    if (el._typeToken) el._typeToken.skip = true;
+    el.innerHTML = raw;
+    el.classList.remove('typing');
+    el.style.opacity = '1';
+    el.dataset.done = '1';
+    delete el.dataset.typing;
+  });
+  updateReaderControl();
+}
+
+function replayMessage(sc) {
+  if (!sc) return;
+  sc.querySelectorAll('.tw').forEach(el => {
+    const raw = el._typewriterHTML || el.innerHTML;
+    el._typewriterHTML = raw;
+    if (el._typeToken) el._typeToken.skip = true;
+    el.innerHTML = raw;
+    el.classList.remove('typing');
+    el.style.opacity = '';
+    delete el.dataset.done;
+    delete el.dataset.typing;
+    el._typingPromise = null;
+  });
+  updateReaderControl();
+  activate(cur);
+}
 
 async function go(n) {
   if (n < 0 || n >= scenes.length || n === cur || busy) return;
   busy = true;
+  showFullMessage(scenes[cur]);
   scenes[cur].classList.remove('active');
   dots[cur].classList.remove('on');
   dots[n].classList.add('on');
@@ -157,6 +249,8 @@ async function go(n) {
   scenes[cur].classList.add('active');
   prevBtn.classList.toggle('off', cur === 0);
   nextBtn.classList.toggle('off', cur === scenes.length - 1);
+  updateProgress();
+  updateReaderControl();
   setTimeout(() => activate(cur), 250);
   setTimeout(() => { busy = false; }, 2100);
 }
@@ -171,7 +265,7 @@ async function activate(idx) {
   }
 
   const vid = document.getElementById('bvid');
-  if (idx === 3 && vid) { vid.currentTime = 0; vid.play().catch(() => {}); }
+  if (idx === 3 && vid) { vid.currentTime = 0; vid.play().catch(() => { }); }
   else if (vid) vid.pause();
 
   if (idx === 5) setTimeout(fireworks, 1100);
@@ -179,15 +273,26 @@ async function activate(idx) {
   for (const el of sc.querySelectorAll('.tw')) {
     await typeEl(el, el.tagName === 'H2' ? 38 : 20);
   }
+  updateReaderControl();
 }
 
-window.addEventListener('load', () => setTimeout(() => activate(0), 600));
+window.addEventListener('load', () => {
+  updateProgress();
+  setTimeout(() => activate(0), 600);
+});
 dots.forEach((d, i) => d.addEventListener('click', () => go(i)));
 prevBtn.addEventListener('click', () => go(cur - 1));
 nextBtn.addEventListener('click', () => go(cur + 1));
+if (readerToggle) {
+  readerToggle.addEventListener('click', () => {
+    const sc = scenes[cur];
+    if (sceneHasTyping(sc)) showFullMessage(sc);
+    else if (sceneHasTypedText(sc)) replayMessage(sc);
+  });
+}
 document.addEventListener('keydown', e => {
   if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(cur + 1);
-  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   go(cur - 1);
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') go(cur - 1);
 });
 
 /* Touch swipe */
@@ -197,11 +302,12 @@ document.addEventListener('touchend', e => {
   const dx = tx - e.changedTouches[0].clientX;
   const dy = ty - e.changedTouches[0].clientY;
   if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 45) dx > 0 ? go(cur + 1) : go(cur - 1);
-  else if (Math.abs(dy) > 45) dy > 0 ? go(cur + 1) : go(cur - 1);
 }, { passive: true });
 
 let wLock = false;
 document.addEventListener('wheel', e => {
+  const activeScene = scenes[cur];
+  if (activeScene && activeScene.scrollHeight > activeScene.clientHeight) return;
   if (wLock) return; wLock = true;
   e.deltaY > 0 ? go(cur + 1) : go(cur - 1);
   setTimeout(() => wLock = false, 2000);
@@ -217,35 +323,37 @@ function fireworks() {
   const ctx = fc.getContext('2d');
   fc.width = fc.offsetWidth; fc.height = fc.offsetHeight;
 
-  const colors = ['#f9a8d4','#c4b5fd','#fdf4ff','#f0c67a','#f43f5e','#a78bfa','#e879f9'];
+  const colors = ['#f9a8d4', '#c4b5fd', '#fdf4ff', '#f0c67a', '#f43f5e', '#a78bfa', '#e879f9'];
   const allP = [];
 
   function burst(x, y) {
     for (let i = 0; i < 80; i++) {
       const a = Math.random() * Math.PI * 2, sp = Math.random() * 2.8 + .4;
-      allP.push({ x, y, vx: Math.cos(a)*sp, vy: Math.sin(a)*sp,
+      allP.push({
+        x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
         r: Math.random() * 2.2 + .5,
-        col: colors[Math.floor(Math.random()*colors.length)],
-        alpha: 1, decay: Math.random()*.009+.003 });
+        col: colors[Math.floor(Math.random() * colors.length)],
+        alpha: 1, decay: Math.random() * .009 + .003
+      });
     }
   }
 
   const W = fc.width, H = fc.height;
   const pts = [
-    [W*.5,  H*.25], [W*.22, H*.32], [W*.78, H*.28],
-    [W*.38, H*.2 ], [W*.65, H*.38]
+    [W * .5, H * .25], [W * .22, H * .32], [W * .78, H * .28],
+    [W * .38, H * .2], [W * .65, H * .38]
   ];
-  pts.forEach(([x,y], i) => setTimeout(() => burst(x, y), i * 380));
+  pts.forEach(([x, y], i) => setTimeout(() => burst(x, y), i * 380));
 
   function loop() {
-    ctx.clearRect(0,0,W,H);
+    ctx.clearRect(0, 0, W, H);
     let alive = false;
     for (const p of allP) {
       if (p.alpha <= 0) continue;
       alive = true;
       p.x += p.vx; p.y += p.vy; p.vy += .011; p.vx *= .998; p.alpha -= p.decay;
-      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      ctx.fillStyle = p.col; ctx.globalAlpha = Math.max(0,p.alpha); ctx.fill();
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = p.col; ctx.globalAlpha = Math.max(0, p.alpha); ctx.fill();
     }
     ctx.globalAlpha = 1;
     if (alive) requestAnimationFrame(loop);
@@ -256,17 +364,17 @@ function fireworks() {
 /* ═══════════════════════════════════════
    MUSIC — Like You, Tatiana Manaois
    ═══════════════════════════════════════ */
-const audio  = document.getElementById('music');
-const btn    = document.getElementById('music-btn');
-let isOn     = false;
+const audio = document.getElementById('music');
+const btn = document.getElementById('music-btn');
+let isOn = false;
 
 audio.volume = 0.32;
-audio.loop   = true;
+audio.loop = true;
 
 function startMusic() {
   audio.play().then(() => {
     isOn = true; btn.textContent = '♫'; btn.classList.add('on');
-  }).catch(() => {});
+  }).catch(() => { });
 }
 
 btn.addEventListener('click', () => {
@@ -280,6 +388,6 @@ btn.addEventListener('click', () => {
 /* Auto-play on first any interaction — needed for mobile */
 function tryPlay() {
   if (!isOn) startMusic();
-  ['touchstart','click','keydown'].forEach(ev => document.removeEventListener(ev, tryPlay));
+  ['touchstart', 'click', 'keydown'].forEach(ev => document.removeEventListener(ev, tryPlay));
 }
-['touchstart','click','keydown'].forEach(ev => document.addEventListener(ev, tryPlay, { once: true, passive: true }));
+['touchstart', 'click', 'keydown'].forEach(ev => document.addEventListener(ev, tryPlay, { once: true, passive: true }));
