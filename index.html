@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#09050f">
+  <title>Happy 18th Birthday, Àyànfé 💙</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- Background layers -->
+  <div id="bg-wrap">
+    <div id="mesh"></div>
+  </div>
+  <canvas id="stars"></canvas>
+  <canvas id="petals"></canvas>
+  <div id="orbs"></div>
+  <div id="noise"></div>
+  <div id="paparazzi"></div>
+  <div id="vignette"></div>
+
+  <!-- Music: Like You — Tatiana Manaois -->
+  <audio id="music" loop preload="auto">
+    <source src="like-you.mp3" type="audio/mpeg">
+  </audio>
+  <button id="music-btn" aria-label="Toggle music">♪</button>
+
+  <div id="app">
+
+    <!-- SCENE 1 — Opening -->
+    <section class="scene active" id="scene-1">
+      <p class="s1-eyebrow">a letter for my baby girl 🔐❤️</p>
+      <h1 class="s1-name">Oluwanifemi<br>Favour Alabi</h1>
+      <div class="s1-rule"></div>
+      <p class="s1-date">June 13 &nbsp;·&nbsp; A special day for a special person 💙</p>
+      <p class="s1-hint">swipe to begin</p>
+    </section>
+
+    <!-- SCENE 2 — The Message -->
+    <section class="scene" id="scene-2">
+      <div class="card fi">
+        <p class="s2-label">a birthday message</p>
+        <h2 class="s2-heading tw">Hey Àyànfé 🎂</h2>
+        <p class="s2-body tw">
+          You are, without question, the most intelligent and loving person I have ever met.
+          Your smile, Oluwanifemi, I genuinely cannot explain what it does. It's not just beautiful;
+          it's disarming. The kind that makes an entire room feel warmer just because you
+          decided to walk into it.<br><br>
+          And the way you look at me, even after everything I put you through. With you it's like
+          nothing else exists for that moment. I don't take that lightly. I never did.<br><br>
+          I know I haven't always been what you deserved. I carry that. But watching you
+          grow into this version of yourself, stepping into 18, bold and free and so
+          unapologetically <em>you</em>, it makes me prouder than words will ever be able to say.<br><br>
+          I love you so much, Oluwanifemi. Not as pressure. Not as a plea. Just as a quiet truth I carry
+          with me every single day. You deserve every beautiful thing this year brings
+          and then some. Happy birthday Àyànfé 💙
+        </p>
+      </div>
+    </section>
+
+    <!-- SCENE 3 — Not Alone -->
+    <section class="scene" id="scene-3">
+      <div class="card fi">
+        <h2 class="s3-heading tw">Àyànfé, you are not alone.</h2>
+        <p class="s3-body tw">
+          Turning 18 can feel like a lot. Like the world suddenly expects everything from
+          you all at once, answers you don't have yet, strength you're still learning
+          how to carry, decisions that feel too heavy for one person.<br><br>
+          I don't know everything you're going through right now. I won't pretend I do.
+          But I know this, you don't have to carry any of it alone. Not the weight.
+          Not the doubt. Not the quiet fears you keep to yourself when the lights go off.<br><br>
+          Whatever it is, Àyànfé, we go through it together. As one. You have someone
+          in your corner who isn't going anywhere. No matter what. No matter when.
+          That part is permanent.
+        </p>
+        <p class="s3-close tw">Whatever it is, we go through it together. 💙</p>
+      </div>
+    </section>
+
+    <!-- SCENE 4 — Memories -->
+    <section class="scene" id="scene-4">
+      <h2 class="s4-heading tw">Just look at my adorable baby girl 🥹🥹🥹</h2>
+      <div class="s4-media fi fi-d1">
+        <div class="s4-img-wrap">
+          <img class="s4-img" src="Gemini_Generated_Image_o01icto01icto01i.png" alt="Baby Àyànfé">
+        </div>
+        <video class="s4-video" id="bvid" playsinline controls>
+          <source src="VID-20260421-WA0026.mp4" type="video/mp4">
+        </video>
+      </div>
+      <p class="s4-caption tw fi fi-d2">
+        Had absolutely no idea you'd grow up and mean this much to someone.
+        18 years ago I got so lucky without even realising it. 🥹
+      </p>
+    </section>
+
+    <!-- SCENE 5 — Things About You -->
+    <section class="scene" id="scene-5">
+      <div class="card fi">
+        <h2 class="s5-heading tw">A few things I love about you, Àyànfé...</h2>
+        <ul class="s5-list">
+          <li><span class="s5-mark">✦</span>You are the love of my life, and I mean that in the way that makes
+            everything else make sense</li>
+          <li><span class="s5-mark">✦</span>The way you calm me when I'm spiraling, you always know how to bring me back
+          </li>
+          <li><span class="s5-mark">✦</span>How you care about me when I'm sick, like I'm the only person who matters in
+            that moment</li>
+          <li><span class="s5-mark">✦</span>Your kisses. Above everything. Nothing compares, nothing ever will.</li>
+          <li><span class="s5-mark">✦</span>Your intelligence, it walks into the room before you do, and I fall for it
+            every time</li>
+          <li><span class="s5-mark">✦</span>That mouth, the things you say, the way you say them, entirely unfair and
+            entirely you</li>
+          <li><span class="s5-mark">✦</span>The way you love people without holding anything back — I've never seen
+            anything like it</li>
+          <li><span class="s5-mark">✦</span>The fact that you keep going no matter what — quietly, stubbornly,
+            beautifully</li>
+          <li><span class="s5-mark">✦</span>There are a thousand more things I could write here. I'd give anything to
+            keep discovering them.</li>
+          <li><span class="s5-mark">✦</span>You're 18 now. The world has absolutely no idea what's coming, go get them
+            babyy😌</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- SCENE 6 — Grand Finale -->
+    <section class="scene" id="scene-6">
+      <canvas id="fw-canvas"></canvas>
+      <div class="s6-inner">
+        <h2 class="s6-heading tw">Happy 18th Birthday,<br>Àyànfé 🎂</h2>
+        <p class="s6-sub tw">You deserved this then. You deserve this now. Always.</p>
+        <p class="s6-love tw">I love you. That part was never the question. 💙</p>
+        <p class="s6-final tw">Whatever comes next, we go through it together, as one.</p>
+        <div class="s6-photos fi fi-d2">
+          <img class="s6-photo" src="Gemini_Generated_Image_o01icto01icto01i.png" alt="Baby Àyànfé">
+          <img class="s6-photo" src="a5043e4959d04e9880bd602234c69843.jpg" alt="Àyànfé today">
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Navigation -->
+  <div id="arrows">
+    <button class="arr off" id="prev" aria-label="Previous">‹</button>
+    <button class="arr" id="next" aria-label="Next">›</button>
+  </div>
+  <div id="nav">
+    <div class="dot on" data-s="0"></div>
+    <div class="dot" data-s="1"></div>
+    <div class="dot" data-s="2"></div>
+    <div class="dot" data-s="3"></div>
+    <div class="dot" data-s="4"></div>
+    <div class="dot" data-s="5"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
